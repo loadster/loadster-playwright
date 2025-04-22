@@ -3,16 +3,30 @@
   "type": "module",
   "version": "1.48.1",
   "description": "Loadster Playwright Wrapper",
-  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "main": "./src/index.js",
   "exports": {
-    ".": "./index.js",
-    "./test": "./test.js"
+    ".": "./src/index.js",
+    "./test": "./src/test.js"
   },
-  "author": "",
+  "files": [
+    "src/",
+    "README.md"
+  ],
+  "author": "Andy Hawkes <andy@loadster.app>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/loadster/loadster-playwright"
+  },
+  "keywords": [
+    "playwright",
+    "load testing",
+    "loadster",
+    "browser automation"
+  ],
   "dependencies": {
     "continuation-local-storage": "^3.2.1",
     "ip-validator": "^0.0.1",
