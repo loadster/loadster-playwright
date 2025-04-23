@@ -1,3 +1,7 @@
+# Build output
+cjs
+esm
+
 # Logs
 logs
 *.log

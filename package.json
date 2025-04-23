@@ -1,25 +1,28 @@
 {
   "name": "@loadster/playwright",
-  "type": "module",
-  "version": "1.48.1",
+  "version": "1.49.0",
   "description": "Loadster Playwright Wrapper",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "main": "./src/index.js",
+  "main": "./cjs/index.js",
   "exports": {
-    ".": "./src/index.js",
-    "./test": "./src/test.js"
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./cjs/index.js"
+    },
+    "./test": {
+      "import": "./esm/test.js",
+      "require": "./cjs/test.js"
+    }
   },
   "files": [
-    "src/",
+    "esm/",
+    "cjs/",
     "README.md"
   ],
-  "author": "Andy Hawkes <andy@loadster.app>",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/loadster/loadster-playwright"
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "esbuild src/index.js --format=esm --platform=node --outfile=esm/index.js && esbuild src/test.js --format=esm --platform=node --outfile=esm/test.js && esbuild src/proxy.js --format=esm --platform=node --outfile=esm/proxy.js",
+    "build:cjs": "esbuild src/index.js --format=cjs --platform=node --outfile=cjs/index.js && esbuild src/test.js --format=cjs --platform=node --outfile=cjs/test.js && esbuild src/proxy.js --format=cjs --platform=node --outfile=cjs/proxy.js"
   },
   "keywords": [
     "playwright",
@@ -27,11 +30,23 @@
     "loadster",
     "browser automation"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loadster/loadster-playwright.git"
+  },
+  "author": "Andy Hawkes <andy@loadster.app>",
+  "license": "MIT",
   "dependencies": {
     "continuation-local-storage": "^3.2.1",
     "ip-validator": "^0.0.1",
-    "playwright": "^1.48.1",
+    "playwright": "^1.49.0",
     "simple-node-logger": "^21.8.12",
     "simple-socks": "^3.1.0"
+  },
+  "peerDependencies": {
+    "playwright": "1.49.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.2"
   }
 }
