@@ -1,6 +1,6 @@
 {
   "name": "@loadster/playwright",
-  "version": "1.49.0",
+  "version": "1.49.0.1",
   "description": "Loadster Playwright Wrapper",
   "main": "./cjs/index.js",
   "exports": {

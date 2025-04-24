@@ -234,9 +234,7 @@ function wrapBrowserClose (browser, config, proxy) {
             }, config.metricsInterval);
         }
 
-        if (process.send) {
-            process.send({ type: 'metrics', metrics });
-        }
+        emitEvent({ type: 'metrics', ...metrics });
 
         return originalClose();
     };
@@ -321,9 +319,7 @@ function wrapBrowserType (browserType) {
                 metrics.uploadBytes = proxy.getUploadBytes();
                 metrics.downloadBytes = proxy.getDownloadBytes();
 
-                if (process.send) {
-                    process.send({ type: 'metrics', metrics });
-                }
+                emitEvent({ type: 'metrics', ...metrics });
             }, config.metricsInterval);
 
             wrapBrowserClose(browser, config, proxy);
