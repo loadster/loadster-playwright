@@ -1,6 +1,6 @@
 const Logger = require('simple-node-logger');
 const { Buffer } = require('buffer');
-const { createProxy } = require('./proxy.js');
+const { createProxy } = require('./proxy.cjs');
 
 const logger = Logger.createSimpleLogger({ timestampFormat: 'YYYY-MM-DD HH:mm:ss.SSS' });
 
@@ -243,7 +243,6 @@ function wrapBrowserClose (browser, config, proxy) {
  * Wraps Playwright's BrowserType so that it launches wrapped browsers.
  */
 function wrapBrowserType (browserType) {
-    console.log('WRAPPING ', browserType);
     return {
         ...browserType,
         launch: async function (options = {}) {

@@ -18,10 +18,14 @@
     ".": {
       "types": "./index.d.ts",
       "import": "./index.mjs",
-      "require": "./index.js",
-      "default": "./index.js"
+      "require": "./index.cjs",
+      "default": "./index.cjs"
     },
+    "./cli": "./cli.cjs",
     "./package.json": "./package.json"
+  },
+  "bin": {
+    "playwright": "./cli.cjs"
   },
   "scripts": {},
   "dependencies": {

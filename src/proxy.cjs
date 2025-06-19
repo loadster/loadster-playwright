@@ -71,7 +71,7 @@ function createSocksServer (proxy, log) {
     return socks;
 }
 
-export function createProxy (port, log) {
+function createProxy (port, log) {
     const proxy = {
         port: port,
         counters: [],
@@ -142,3 +142,7 @@ export function createProxy (port, log) {
 
     return proxy;
 }
+
+module.exports = {
+    createProxy
+};
