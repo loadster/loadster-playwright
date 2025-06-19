@@ -1,7 +1,7 @@
-import DNS from 'dns';
-import ValidateIP from 'ip-validator';
-import Socks from 'simple-socks';
-import ContinuationLocalStorage from 'continuation-local-storage';
+const DNS = require('dns');
+const ValidateIP = require('ip-validator');
+const Socks = require('simple-socks');
+const ContinuationLocalStorage = require('continuation-local-storage');
 
 const DnsLookup = DNS.lookup;
 const continuation = ContinuationLocalStorage.createNamespace('proxies');
