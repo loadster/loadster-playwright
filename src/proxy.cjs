@@ -113,9 +113,15 @@ function createProxy (port, log) {
 
                 proxy.socks.close(err => {
                     if (err) {
-                        log.error(`Failed to close proxy server on ${proxy.port}`, err);
+                        if (err.code === 'ERR_SERVER_NOT_RUNNING') {
+                            log.warn(`Proxy server on ${proxy.port} was not running or already closed`);
 
-                        reject(err);
+                            resolve(proxy);
+                        } else {
+                            log.error(`Failed to close proxy server on ${proxy.port}`, err);
+
+                            reject(err);
+                        }
                     } else {
                         log.debug(`Closed proxy server on ${proxy.port}`);
 
