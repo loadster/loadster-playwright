@@ -1,7 +1,7 @@
-import DNS from 'dns';
-import ValidateIP from 'ip-validator';
-import Socks from 'simple-socks';
-import ContinuationLocalStorage from 'continuation-local-storage';
+const DNS = require('dns');
+const ValidateIP = require('ip-validator');
+const Socks = require('simple-socks');
+const ContinuationLocalStorage = require('continuation-local-storage');
 
 const DnsLookup = DNS.lookup;
 const continuation = ContinuationLocalStorage.createNamespace('proxies');
@@ -71,7 +71,7 @@ function createSocksServer (proxy, log) {
     return socks;
 }
 
-export function createProxy (port, log) {
+function createProxy (port, log) {
     const proxy = {
         port: port,
         counters: [],
@@ -113,9 +113,15 @@ export function createProxy (port, log) {
 
                 proxy.socks.close(err => {
                     if (err) {
-                        log.error(`Failed to close proxy server on ${proxy.port}`, err);
+                        if (err.code === 'ERR_SERVER_NOT_RUNNING') {
+                            log.warn(`Proxy server on ${proxy.port} was not running or already closed`);
 
-                        reject(err);
+                            resolve(proxy);
+                        } else {
+                            log.error(`Failed to close proxy server on ${proxy.port}`, err);
+
+                            reject(err);
+                        }
                     } else {
                         log.debug(`Closed proxy server on ${proxy.port}`);
 
@@ -142,3 +148,7 @@ export function createProxy (port, log) {
 
     return proxy;
 }
+
+module.exports = {
+    createProxy
+};

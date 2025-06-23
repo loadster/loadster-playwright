@@ -1,7 +1,6 @@
-import * as playwright from 'playwright';
-import Logger from 'simple-node-logger';
-import {Buffer} from 'buffer';
-import {createProxy} from './proxy.js';
+const Logger = require('simple-node-logger');
+const { Buffer } = require('buffer');
+const { createProxy } = require('./proxy.cjs');
 
 const logger = Logger.createSimpleLogger({ timestampFormat: 'YYYY-MM-DD HH:mm:ss.SSS' });
 
@@ -302,6 +301,8 @@ function wrapBrowserType (browserType) {
                 const context = await originalNewContext.call(this, { ...contextOptions, ...options });
 
                 context.on('page', async page => {
+                    page.__loadster = true;
+
                     await emulateNetworkConditions(page, config);
 
                     attachPageRequestListener(page);
@@ -329,6 +330,7 @@ function wrapBrowserType (browserType) {
     };
 }
 
-export const chromium = wrapBrowserType(playwright.chromium);
-export const firefox = wrapBrowserType(playwright.firefox);
-export const webkit = wrapBrowserType(playwright.webkit);
+module.exports = {
+    wrapBrowserType
+};
+

@@ -1,52 +1,38 @@
 {
-  "name": "@loadster/playwright",
-  "version": "1.49.0.1",
-  "description": "Loadster Playwright Wrapper",
-  "main": "./cjs/index.js",
-  "exports": {
-    ".": {
-      "import": "./esm/index.js",
-      "require": "./cjs/index.js"
-    },
-    "./test": {
-      "import": "./esm/test.js",
-      "require": "./cjs/test.js"
-    }
-  },
-  "files": [
-    "esm/",
-    "cjs/",
-    "README.md"
-  ],
-  "scripts": {
-    "prepare": "npm run build",
-    "build": "npm run build:esm && npm run build:cjs",
-    "build:esm": "esbuild src/index.js --format=esm --platform=node --outfile=esm/index.js && esbuild src/test.js --format=esm --platform=node --outfile=esm/test.js && esbuild src/proxy.js --format=esm --platform=node --outfile=esm/proxy.js",
-    "build:cjs": "esbuild src/index.js --format=cjs --platform=node --outfile=cjs/index.js && esbuild src/test.js --format=cjs --platform=node --outfile=cjs/test.js && esbuild src/proxy.js --format=cjs --platform=node --outfile=cjs/proxy.js"
-  },
-  "keywords": [
-    "playwright",
-    "load testing",
-    "loadster",
-    "browser automation"
-  ],
+  "name": "@loadster/playwright-test",
+  "version": "1.52.0",
+  "description": "A Loadster wrapper for Playwright Test",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/loadster/loadster-playwright.git"
   },
-  "author": "Andy Hawkes <andy@loadster.app>",
-  "license": "MIT",
+  "homepage": "https://loadster.app",
+  "engines": {
+    "node": ">=18"
+  },
+  "author": {
+    "name": "Loadster"
+  },
+  "license": "Apache-2.0",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs",
+      "require": "./index.cjs",
+      "default": "./index.cjs"
+    },
+    "./cli": "./cli.cjs",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "playwright": "./cli.cjs"
+  },
+  "scripts": {},
   "dependencies": {
     "continuation-local-storage": "^3.2.1",
     "ip-validator": "^0.0.1",
-    "playwright": "^1.49.0",
+    "playwright": "1.52.0",
     "simple-node-logger": "^21.8.12",
-    "simple-socks": "^3.1.0"
-  },
-  "peerDependencies": {
-    "playwright": "1.49.0"
-  },
-  "devDependencies": {
-    "esbuild": "^0.25.2"
+    "simple-socks": "^2.2.1"
   }
 }
