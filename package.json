@@ -1,6 +1,6 @@
 {
   "name": "@loadster/playwright-test",
-  "version": "1.52.0",
+  "version": "1.52.0-r.2",
   "description": "A Loadster wrapper for Playwright Test",
   "repository": {
     "type": "git",
