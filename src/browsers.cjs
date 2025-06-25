@@ -23,7 +23,7 @@ async function emitEvent (event) {
                 body: JSON.stringify([event])
             });
 
-            logger.info('Emitted event: ', event);
+            logger.debug('Emitted event: ', event);
         } catch (err) {
             logger.error('Error emitting event: ', event, err);
         }
@@ -82,7 +82,20 @@ function attachPageNavigationListener (page) {
 
                 const endTime = Date.now();
 
-                await emitEvent({ type: 'navigation', url, startTime, endTime, timestamp: endTime });
+                // TODO - do automatic screenshots make sense?
+                await page.screenshot({
+                    fullPage: true,
+                    loadsterEventCallback: async (screenshot) => {
+                        await emitEvent({
+                            type: 'navigation',
+                            url,
+                            startTime,
+                            endTime,
+                            timestamp: endTime,
+                            screenshot
+                        });
+                    }
+                });
             }
         } catch (err) {
             logger.error('Error in framenavigated listener', err);
@@ -148,7 +161,7 @@ async function emulateNetworkConditions (page, config) {
  * is taken.
  */
 function wrapPageScreenshot (page, config) {
-    const originalScreenshot = page.screenshot.bind(page);
+    page.__screenshot = page.screenshot.bind(page);
 
     page.screenshot = async (opts = {}) => {
         try {
@@ -207,10 +220,8 @@ function wrapPageScreenshot (page, config) {
                 }
             }
 
-            const imageBuffer = await originalScreenshot(options);
-            const screenshotEvent = {
-                type: 'screenshot',
-                timestamp: Date.now(),
+            const imageBuffer = await page.__screenshot(options);
+            const screenshot = {
                 contentType: 'image/jpeg',
                 content: imageBuffer.toString('base64'),
                 width,
@@ -219,7 +230,15 @@ function wrapPageScreenshot (page, config) {
                 scrollY
             };
 
-            await emitEvent(screenshotEvent);
+            if (typeof opts.loadsterEventCallback === 'function') {
+                await opts.loadsterEventCallback(screenshot);
+            } else {
+                await emitEvent({
+                    type: 'screenshot',
+                    timestamp: Date.now(),
+                    screenshot
+                });
+            }
 
             return imageBuffer;
         } catch (err) {
