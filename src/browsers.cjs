@@ -3,6 +3,7 @@ const { Buffer } = require('buffer');
 const { createProxy } = require('./proxy.cjs');
 
 const logger = Logger.createSimpleLogger({ timestampFormat: 'YYYY-MM-DD HH:mm:ss.SSS' });
+const runtimeBaseUrl = process.env.LOADSTER_RUNTIME_BASE;
 
 const metrics = {
     requests: 0,
@@ -11,31 +12,46 @@ const metrics = {
     consoleMessages: 0
 };
 
-function emitEvent (event) {
-    if (process.send) {
-        process.send({ type: 'event', event });
+async function emitEvent (event) {
+    if (runtimeBaseUrl) {
+        try {
+            await fetch(`${runtimeBaseUrl}/actions/queue-events`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([event])
+            });
+
+            logger.debug('Emitted event: ', event);
+        } catch (err) {
+            logger.error('Error emitting event: ', event, err);
+        }
+    } else {
+        logger.warn('Not emitting event because no runtime URL is configured: ', event);
     }
 }
 
-function waitForConfig () {
-    return new Promise(resolve => {
-        process && process.once && process.once('message', msg => {
-            if (msg.type === 'config') {
-                resolve(msg.config);
-            }
-        });
+async function loadConfig () {
+    if (runtimeBaseUrl) {
+        try {
+            const response = await fetch(`${runtimeBaseUrl}`);
+            const json = await response.json();
 
-        setTimeout(() => {
-            resolve({});
-        }, 3000);
-    });
+            return await json.config || {};
+        } catch (err) {
+            logger.error('Error loading config: ', err);
+        }
+    } else {
+        logger.warn('Not loading config because no runtime URL is configured');
+    }
 }
 
 function attachPageConsoleListener (page, config) {
     page.on('console', async msg => {
         try {
             if (metrics.consoleMessages < config.maxConsoleMessages) {
-                emitEvent({
+                await emitEvent({
                     type: 'console',
                     timestamp: Date.now(),
                     location: await page.url(),
@@ -66,7 +82,20 @@ function attachPageNavigationListener (page) {
 
                 const endTime = Date.now();
 
-                emitEvent({ type: 'navigation', url, startTime, endTime, timestamp: endTime });
+                // TODO - do automatic screenshots make sense?
+                await page.screenshot({
+                    fullPage: true,
+                    loadsterEventCallback: async (screenshot) => {
+                        await emitEvent({
+                            type: 'navigation',
+                            url,
+                            startTime,
+                            endTime,
+                            timestamp: endTime,
+                            screenshot
+                        });
+                    }
+                });
             }
         } catch (err) {
             logger.error('Error in framenavigated listener', err);
@@ -95,7 +124,7 @@ function attachPageResponseListener (page, config) {
                 const endTime = Date.now();
                 const startTime = endTime - timing.responseEnd;
 
-                emitEvent({
+                await emitEvent({
                     type: 'sample',
                     method: request.method(),
                     url,
@@ -132,7 +161,7 @@ async function emulateNetworkConditions (page, config) {
  * is taken.
  */
 function wrapPageScreenshot (page, config) {
-    const originalScreenshot = page.screenshot.bind(page);
+    page.__screenshot = page.screenshot.bind(page);
 
     page.screenshot = async (opts = {}) => {
         try {
@@ -191,10 +220,8 @@ function wrapPageScreenshot (page, config) {
                 }
             }
 
-            const imageBuffer = await originalScreenshot(options);
-            const screenshotEvent = {
-                type: 'screenshot',
-                timestamp: Date.now(),
+            const imageBuffer = await page.__screenshot(options);
+            const screenshot = {
                 contentType: 'image/jpeg',
                 content: imageBuffer.toString('base64'),
                 width,
@@ -203,7 +230,15 @@ function wrapPageScreenshot (page, config) {
                 scrollY
             };
 
-            emitEvent(screenshotEvent);
+            if (typeof opts.loadsterEventCallback === 'function') {
+                await opts.loadsterEventCallback(screenshot);
+            } else {
+                await emitEvent({
+                    type: 'screenshot',
+                    timestamp: Date.now(),
+                    screenshot
+                });
+            }
 
             return imageBuffer;
         } catch (err) {
@@ -233,7 +268,7 @@ function wrapBrowserClose (browser, config, proxy) {
             }, config.metricsInterval);
         }
 
-        emitEvent({ type: 'metrics', ...metrics });
+        await emitEvent({ type: 'metrics', ...metrics });
 
         return originalClose();
     };
@@ -264,7 +299,7 @@ function wrapBrowserType (browserType) {
                 viewportWidth: null,
                 viewportHeight: null,
                 userAgent: null
-            }, await waitForConfig());
+            }, await loadConfig());
 
             if (!config.proxyPort) {
                 throw new Error('proxyPort is required in the config');
